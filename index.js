@@ -113,6 +113,20 @@ app.get('/search_users', async (req, res) => {
   }
 });
 
+// 4. Delete a record based on a given username
+app.delete('/delete_user/:username', async (req, res) => {
+  const { username } = req.params;
+  try {
+    const user = await User.findOneAndDelete({ username });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    return res.status(200).json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
 
 
 const PORT = 3000;
