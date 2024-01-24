@@ -24,6 +24,42 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
+// 1. Save GitHub user details into the database
+app.post('/save_user/:username', async (req, res) => {
+  const { username } = req.params;
+
+  try {
+    const existingUser = await User.findOne({ username });
+
+    if (existingUser) {
+      return res.status(200).json({ message: 'User already exists in the database' });
+    }
+
+    const githubApiUrl = `https://api.github.com/users/${username}`;
+    const response = await axios.get(githubApiUrl);
+
+    if (response.status === 200) {
+      const userData = response.data;
+
+      const newUser = new User({
+        username: userData.login,
+        location: userData.location,
+        blog: userData.blog,
+        bio: userData.bio,
+      });
+
+      await newUser.save();
+
+      return res.status(200).json({ message: 'User data saved successfully' });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+
+
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
