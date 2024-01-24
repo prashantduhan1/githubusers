@@ -58,6 +58,38 @@ app.post('/save_user/:username', async (req, res) => {
   }
 });
 
+// 2. Find mutually followed users and save them as friends
+app.post('/find_friends/:username', async (req, res) => {
+  const { username } = req.params;
+
+  try {
+    const user = await User.findOne({ username }).populate('friends');
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const githubApiUrl = `https://api.github.com/users/${username}/following`;
+    const response = await axios.get(githubApiUrl);
+
+    if (response.status === 200) {
+      const following = response.data.map(followedUser => followedUser.login);
+
+      const mutualFriends = await User.find({
+        username: { $in: following },
+        friends: user._id,
+      });
+
+      user.friends = mutualFriends.map(friend => friend._id);
+      await user.save();
+
+      return res.status(200).json({ message: 'Mutual friends saved successfully' });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
 
 
 const PORT = 3000;
