@@ -128,6 +128,31 @@ app.delete('/delete_user/:username', async (req, res) => {
   }
 });
 
+// 5. Update fields for a given user in the database
+app.put('/update_user/:username', async (req, res) => {
+  const { username } = req.params;
+  const { location, blog, bio } = req.body;
+
+  try {
+    const user = await User.findOne({ username });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (location) user.location = location;
+    if (blog) user.blog = blog;
+    if (bio) user.bio = bio;
+
+    await user.save();
+
+    return res.status(200).json({ message: 'User updated successfully' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
 
 const PORT = 3000;
 app.listen(PORT, () => {
