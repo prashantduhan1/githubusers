@@ -91,6 +91,29 @@ app.post('/find_friends/:username', async (req, res) => {
   }
 });
 
+// 3. Search saved data from the database
+app.get('/search_users', async (req, res) => {
+  try {
+    const { username, location } = req.query;
+    const query = {};
+
+    if (username) {
+      query.username = new RegExp(username, 'i');
+    }
+
+    if (location) {
+      query.location = new RegExp(location, 'i');
+    }
+
+    const users = await User.find(query);
+    return res.status(200).json(users);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+
 
 const PORT = 3000;
 app.listen(PORT, () => {
