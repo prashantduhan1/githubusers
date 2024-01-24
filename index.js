@@ -153,6 +153,18 @@ app.put('/update_user/:username', async (req, res) => {
   }
 });
 
+// 6. Return list of all users from the database sorted by given fields
+app.get('/get_all_users', async (req, res) => {
+  const { sortField } = req.query;
+
+  try {
+    const users = await User.find({ deleted: { $ne: true } }).sort(sortField || 'username');
+    return res.status(200).json(users);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
 
 const PORT = 3000;
 app.listen(PORT, () => {
